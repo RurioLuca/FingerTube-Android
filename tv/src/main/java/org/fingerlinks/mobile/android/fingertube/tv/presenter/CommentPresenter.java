@@ -12,7 +12,6 @@ import com.bumptech.glide.Glide;
 import org.fingerlinks.mobile.android.fingertube.tv.R;
 import org.fingerlinks.mobile.android.fingertube.tv.Utils;
 import org.fingerlinks.mobile.android.fingertube.tv.model.CommentModel;
-import org.fingerlinks.mobile.android.fingertube.tv.model.VideoModel;
 
 import java.util.Date;
 

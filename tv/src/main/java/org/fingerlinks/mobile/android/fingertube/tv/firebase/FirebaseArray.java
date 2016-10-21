@@ -29,6 +29,7 @@ public class FirebaseArray implements ChildEventListener {
     private Query mQuery;
     private OnChangedListener mListener;
     private ArrayList<DataSnapshot> mSnapshots;
+
     public FirebaseArray(Query ref) {
         mQuery = ref;
         mSnapshots = new ArrayList<DataSnapshot>();

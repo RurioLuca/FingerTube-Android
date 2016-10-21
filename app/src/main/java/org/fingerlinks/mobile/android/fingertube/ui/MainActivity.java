@@ -2,11 +2,10 @@ package org.fingerlinks.mobile.android.fingertube.ui;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -72,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
     private FirebaseRecyclerAdapter<CommentModel, CommentViewHolder> firebaseRecyclerAdapter;
     private MaterialDialog commentDialog;
+    private TvValueEventListener tvValueEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -188,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
                 addTvCode.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                       showAddTvDialog();
+                        showAddTvDialog();
                     }
                 });
             }
@@ -333,7 +333,6 @@ public class MainActivity extends AppCompatActivity {
                 });
 
 
-
             } else {
                 finish();
             }
@@ -341,13 +340,17 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private TvValueEventListener tvValueEventListener;
-
     private void showCurrentView() {
         myTvQUery = databaseReference.child("tv_list").child(Remember.getString("tv_id", ""));
         tvValueEventListener = new TvValueEventListener();
         myTvQUery.addValueEventListener(tvValueEventListener);
 
+    }
+
+    private void restartApp() {
+        Intent i = getBaseContext().getPackageManager().getLaunchIntentForPackage(getBaseContext().getPackageName());
+        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(i);
     }
 
     private class TvValueEventListener implements ValueEventListener {
@@ -430,12 +433,6 @@ public class MainActivity extends AppCompatActivity {
         public void onCancelled(DatabaseError databaseError) {
 
         }
-    }
-
-    private void restartApp() {
-        Intent i = getBaseContext().getPackageManager().getLaunchIntentForPackage(getBaseContext().getPackageName());
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(i);
     }
 
 }

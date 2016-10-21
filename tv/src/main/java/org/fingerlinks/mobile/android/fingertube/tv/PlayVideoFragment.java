@@ -65,6 +65,8 @@ public class PlayVideoFragment extends PlaybackOverlayFragment {
     private Runnable runnable;
 
     private DatabaseReference databaseReference;
+    private FirebaseArray commentsArray;
+    private SparseArrayObjectAdapter commentsRowAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -160,9 +162,6 @@ public class PlayVideoFragment extends PlaybackOverlayFragment {
         addComments();
         setAdapter(rowsAdapter);
     }
-
-    private FirebaseArray commentsArray;
-    private SparseArrayObjectAdapter commentsRowAdapter;
 
     private void addComments() {
         commentsRowAdapter = new SparseArrayObjectAdapter(new CommentPresenter());
