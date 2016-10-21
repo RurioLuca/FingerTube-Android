@@ -16,13 +16,12 @@ import android.support.v17.leanback.widget.OnActionClickedListener;
 import android.support.v17.leanback.widget.OnItemViewClickedListener;
 import android.support.v17.leanback.widget.OnItemViewSelectedListener;
 import android.support.v17.leanback.widget.PlaybackControlsRow;
-import android.support.v17.leanback.widget.PlaybackControlsRowPresenter;
 import android.support.v17.leanback.widget.PlaybackControlsRow.PlayPauseAction;
+import android.support.v17.leanback.widget.PlaybackControlsRowPresenter;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
 import android.util.Log;
-import android.view.View;
 import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
@@ -184,12 +183,12 @@ public class PlayVideoFragment extends PlaybackOverlayFragment {
         runnable = new Runnable() {
             @Override
             public void run() {
-                PlayVideoActivity playVideoActivity = ((PlayVideoActivity)getActivity());
+                PlayVideoActivity playVideoActivity = ((PlayVideoActivity) getActivity());
                 if (playVideoActivity == null) {
                     stopProgressAutomation();
                     return;
                 }
-                VideoView videoView = ((PlayVideoActivity)getActivity()).getVideoView();
+                VideoView videoView = ((PlayVideoActivity) getActivity()).getVideoView();
                 if (videoView == null) {
                     stopProgressAutomation();
                     return;

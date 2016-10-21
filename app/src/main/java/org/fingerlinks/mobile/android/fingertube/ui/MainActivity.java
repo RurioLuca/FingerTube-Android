@@ -1,22 +1,29 @@
 package org.fingerlinks.mobile.android.fingertube.ui;
 
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.bumptech.glide.Glide;
 import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -29,9 +36,14 @@ import com.google.firebase.database.ValueEventListener;
 import com.tumblr.remember.Remember;
 
 import org.fingerlinks.mobile.android.fingertube.R;
+import org.fingerlinks.mobile.android.fingertube.Utils;
+import org.fingerlinks.mobile.android.fingertube.model.CommentModel;
 import org.fingerlinks.mobile.android.fingertube.model.TvModel;
 import org.fingerlinks.mobile.android.fingertube.model.UserModel;
+import org.fingerlinks.mobile.android.fingertube.model.VideoModel;
+import org.fingerlinks.mobile.android.fingertube.viewholder.CommentViewHolder;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,10 +55,20 @@ public class MainActivity extends AppCompatActivity {
 
     private Toolbar toolbar;
     private Button addTvCode;
+    private FloatingActionButton newComment;
+    private RecyclerView commentList;
+    private ImageView videoImage;
+    private TextView videoTitle;
+
     private LinearLayout addTvContainer;
+    private RelativeLayout commentContainer;
+    private LinearLayout openVideoInTv;
 
     private MaterialDialog progressDialog;
     private DatabaseReference databaseReference;
+    private Query myTvQUery;
+
+    private FirebaseRecyclerAdapter<CommentModel, CommentViewHolder> firebaseRecyclerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +79,54 @@ public class MainActivity extends AppCompatActivity {
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         addTvCode = (Button) findViewById(R.id.add_tv_code);
+        newComment = (FloatingActionButton) findViewById(R.id.new_comment);
         addTvContainer = (LinearLayout) findViewById(R.id.add_tv_container);
+        commentList = (RecyclerView) findViewById(R.id.comment_list);
+        commentContainer = (RelativeLayout) findViewById(R.id.comment_container);
+        openVideoInTv = (LinearLayout) findViewById(R.id.open_video_in_tv);
+
+        videoTitle = (TextView) findViewById(R.id.video_title);
+        videoImage = (ImageView) findViewById(R.id.video_image);
+
+        commentList.setNestedScrollingEnabled(false);
+        GridLayoutManager manager = new GridLayoutManager(MainActivity.this, 1, GridLayoutManager.VERTICAL, false);
+        commentList.setLayoutManager(manager);
+
+/*
+        String[] test = new String[] {
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
+                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk"
+        };
+
+        for (String s : test) {
+            CommentModel model = new CommentModel("b7WH5nXzepWqKC8RJJ4RjVQ5MZ92", "Raphaël Bussa", "raphaelbussa@gmail.com", System.currentTimeMillis(), s);
+            databaseReference.child("comment_list").child("-KTyKVw_iL8FhaVUpML1").push().setValue(model);
+        }*/
 
         toolbar.inflateMenu(R.menu.activity_main);
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -78,7 +147,12 @@ public class MainActivity extends AppCompatActivity {
                                                     @Override
                                                     public void onComplete(@NonNull Task<Void> task) {
                                                         if (task.isSuccessful()) {
-                                                            restartApp();
+                                                            Remember.clear(new Remember.Callback() {
+                                                                @Override
+                                                                public void apply(Boolean success) {
+                                                                    restartApp();
+                                                                }
+                                                            });
                                                         }
                                                     }
                                                 });
@@ -110,37 +184,46 @@ public class MainActivity extends AppCompatActivity {
                     RC_SIGN_IN);
         } else {
             //user is logged, check if tv is connected
-            if (Remember.getBoolean("tv_connected", false)) {
-
+            if (!Remember.getString("tv_id", "").isEmpty()) {
+                //tv is connected, show correct view and comments
+                showCurrentView();
             } else {
                 //no tv connect show dialog to connect
+                addTvContainer.setVisibility(View.VISIBLE);
+                commentContainer.setVisibility(View.GONE);
+                openVideoInTv.setVisibility(View.GONE);
+
                 addTvCode.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        new MaterialDialog.Builder(MainActivity.this)
-                                .title(R.string.inserisci_codice)
-                                .content(R.string.inserisci_codice_msg)
-                                .inputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS)
-                                .inputRange(6, 6)
-                                .negativeText(R.string.cancel)
-                                .positiveText(R.string.ok)
-                                .input("HA23M2", "", false, new MaterialDialog.InputCallback() {
-                                    @Override
-                                    public void onInput(@NonNull final MaterialDialog dialog, CharSequence input) {
-                                        progressDialog = new MaterialDialog.Builder(MainActivity.this)
-                                                .content(R.string.loading)
-                                                .progress(true, 0)
-                                                .cancelable(false)
-                                                .build();
-                                        progressDialog.show();
-                                        setTvId(input.toString().toLowerCase());
-                                    }
-                                }).show();
+                       showAddTvDialog();
                     }
                 });
             }
         }
 
+    }
+
+    private void showAddTvDialog() {
+        new MaterialDialog.Builder(MainActivity.this)
+                .title(R.string.inserisci_codice)
+                .content(R.string.inserisci_codice_msg)
+                .inputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS)
+                .inputRange(6, 6)
+                .negativeText(R.string.cancel)
+                .positiveText(R.string.ok)
+                .input("HA23M2", "", false, new MaterialDialog.InputCallback() {
+                    @Override
+                    public void onInput(@NonNull final MaterialDialog dialog, CharSequence input) {
+                        progressDialog = new MaterialDialog.Builder(MainActivity.this)
+                                .content(R.string.loading)
+                                .progress(true, 0)
+                                .cancelable(false)
+                                .build();
+                        progressDialog.show();
+                        setTvId(input.toString().toLowerCase());
+                    }
+                }).show();
     }
 
     private void setTvId(final String id) {
@@ -154,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                     query.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot1) {
-                            if (dataSnapshot.exists()) {
+                            if (dataSnapshot1.exists()) {
                                 Log.d(TAG, "dataSnapshot.exists()");
                                 UserModel userModel = dataSnapshot.getValue(UserModel.class);
                                 userModel.tv_id = id;
@@ -167,8 +250,9 @@ public class MainActivity extends AppCompatActivity {
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
                                         Log.d(TAG, "onComplete");
-                                        Remember.putBoolean("tv_connected", true);
+                                        Remember.putString("tv_id", id);
                                         progressDialog.dismiss();
+                                        showCurrentView();
                                     }
                                 });
                             } else {
@@ -210,6 +294,10 @@ public class MainActivity extends AppCompatActivity {
                         progressDialog.dismiss();
                         Log.d(TAG, "onDataChange");
                         if (dataSnapshot.exists()) {
+                            UserModel userModel = dataSnapshot.getValue(UserModel.class);
+                            if (!userModel.tv_id.isEmpty()) {
+                                Remember.putString("tv_id", userModel.tv_id);
+                            }
                             Log.d(TAG, "dataSnapshot.exists()");
                             restartApp();
                         } else {
@@ -259,6 +347,90 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private TvValueEventListener tvValueEventListener;
+
+    private void showCurrentView() {
+        myTvQUery = databaseReference.child("tv_list").child(Remember.getString("tv_id", ""));
+        tvValueEventListener = new TvValueEventListener();
+        myTvQUery.addValueEventListener(tvValueEventListener);
+
+    }
+
+    private class TvValueEventListener implements ValueEventListener {
+
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            if (dataSnapshot.exists()) {
+                TvModel tvModel = dataSnapshot.getValue(TvModel.class);
+                Log.d(TAG, "tvModel.video_id [" + tvModel.video_id + "]");
+                String videoId = tvModel.video_id;
+                if (videoId.isEmpty()) {
+                    addTvContainer.setVisibility(View.GONE);
+                    commentContainer.setVisibility(View.GONE);
+                    openVideoInTv.setVisibility(View.VISIBLE);
+                } else {
+                    addTvContainer.setVisibility(View.GONE);
+                    commentContainer.setVisibility(View.VISIBLE);
+                    openVideoInTv.setVisibility(View.GONE);
+                    Query queryVideo = databaseReference.child("video_list").child(videoId);
+                    queryVideo.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.exists()) {
+                                VideoModel videoModel = dataSnapshot.getValue(VideoModel.class);
+                                videoTitle.setText(videoModel.title);
+                                Glide.with(MainActivity.this)
+                                        .load(videoModel.image)
+                                        .asBitmap()
+                                        .error(R.drawable.ic_banner)
+                                        .placeholder(R.drawable.ic_banner)
+                                        .into(videoImage);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+
+
+                    Query query = databaseReference.child("comment_list").child(videoId);
+                    firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<CommentModel, CommentViewHolder>(CommentModel.class, R.layout.row_comment, CommentViewHolder.class, query) {
+                        @Override
+                        protected void populateViewHolder(CommentViewHolder viewHolder, CommentModel model, int position) {
+                            Glide.with(MainActivity.this)
+                                    .load(Utils.gravatarUrl(model.user_email))
+                                    .asBitmap()
+                                    .into(viewHolder.profile);
+                            viewHolder.name.setText(model.user_display_name);
+                            viewHolder.email.setText(model.user_email);
+                            viewHolder.data.setText(Utils.dataRelativa(MainActivity.this, new Date(model.timestamp)));
+                            viewHolder.comment.setText(model.comment);
+                        }
+                    };
+                    commentList.setAdapter(firebaseRecyclerAdapter);
+                }
+            } else {
+                Log.d(TAG, "tvModel removed");
+                Remember.remove("tv_id");
+                myTvQUery.removeEventListener(tvValueEventListener);
+                addTvContainer.setVisibility(View.VISIBLE);
+                addTvCode.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        showAddTvDialog();
+                    }
+                });
+            }
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
     }
 
     private void restartApp() {

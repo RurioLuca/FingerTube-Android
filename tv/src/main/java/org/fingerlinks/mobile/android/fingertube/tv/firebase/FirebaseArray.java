@@ -26,16 +26,9 @@ import java.util.ArrayList;
  */
 public class FirebaseArray implements ChildEventListener {
 
-    public interface OnChangedListener {
-        enum EventType {ADDED, CHANGED, REMOVED, MOVED}
-        void onChanged(EventType type, int index, int oldIndex);
-        void onCancelled(DatabaseError databaseError);
-    }
-
     private Query mQuery;
     private OnChangedListener mListener;
     private ArrayList<DataSnapshot> mSnapshots;
-
     public FirebaseArray(Query ref) {
         mQuery = ref;
         mSnapshots = new ArrayList<DataSnapshot>();
@@ -50,6 +43,7 @@ public class FirebaseArray implements ChildEventListener {
         return mSnapshots.size();
 
     }
+
     public DataSnapshot getItem(int index) {
         return mSnapshots.get(index);
     }
@@ -99,11 +93,11 @@ public class FirebaseArray implements ChildEventListener {
     public void onCancelled(DatabaseError databaseError) {
         notifyCancelledListeners(databaseError);
     }
-    // End of ChildEventListener methods
 
     public void setOnChangedListener(OnChangedListener listener) {
         mListener = listener;
     }
+    // End of ChildEventListener methods
 
     protected void notifyChangedListeners(OnChangedListener.EventType type, int index) {
         notifyChangedListeners(type, index, -1);
@@ -119,5 +113,13 @@ public class FirebaseArray implements ChildEventListener {
         if (mListener != null) {
             mListener.onCancelled(databaseError);
         }
+    }
+
+    public interface OnChangedListener {
+        void onChanged(EventType type, int index, int oldIndex);
+
+        void onCancelled(DatabaseError databaseError);
+
+        enum EventType {ADDED, CHANGED, REMOVED, MOVED}
     }
 }

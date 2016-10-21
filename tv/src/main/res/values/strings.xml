@@ -13,5 +13,10 @@
     <h1><b>%s</b></h1>
     Inserisci il codice qui sopra nella tua applicazione Finger Tube sul tuo smartphone, quando hai finito, torna qui e conferma.
     ]]></string>
+    <string name="un_link">Disassocia</string>
+    <string name="error_login_title">Errore login</string>
+    <string name="error_login_msg">Qualcosa è andato storto nell\'accopiamento del tuo account con la tv, riprova...</string>
+    <string name="login_success">Login effettuato con successo</string>
+    <string name="login">Login</string>
 
 </resources>

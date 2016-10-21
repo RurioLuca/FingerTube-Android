@@ -1,8 +1,6 @@
 package org.fingerlinks.mobile.android.fingertube.tv;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.media.MediaMetadata;
 import android.media.MediaPlayer;
@@ -212,14 +210,6 @@ public class PlayVideoActivity extends Activity implements PlayVideoFragment.OnP
         super.onVisibleBehindCanceled();
     }
 
-    public enum PlaybackState {
-        PLAYING, PAUSED, BUFFERING, IDLE
-    }
-
-    private class MediaSessionCallback extends MediaSession.Callback {
-
-    }
-
     private void setVideoId(final String id) {
         Query query = databaseReference.child("tv_list").child(Remember.getString("tv_id", ""));
         query.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -239,6 +229,14 @@ public class PlayVideoActivity extends Activity implements PlayVideoFragment.OnP
 
             }
         });
+    }
+
+    public enum PlaybackState {
+        PLAYING, PAUSED, BUFFERING, IDLE
+    }
+
+    private class MediaSessionCallback extends MediaSession.Callback {
+
     }
 
 }

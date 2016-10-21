@@ -37,7 +37,7 @@ public class AllVideoFragment extends VerticalGridFragment implements FirebaseAr
         setAdapter(videoRowAdapter);
         setTitle(getString(R.string.show_all));
         VerticalGridPresenter gridPresenter = new VerticalGridPresenter();
-        gridPresenter.setNumberOfColumns(5);
+        gridPresenter.setNumberOfColumns(3);
         setGridPresenter(gridPresenter);
 
         //load data from firebase db
@@ -57,7 +57,7 @@ public class AllVideoFragment extends VerticalGridFragment implements FirebaseAr
                 videoModel = videoArray.getItem(index).getValue(VideoModel.class);
                 videoModel.key = videoArray.getItem(index).getKey();
                 videoRowAdapter.set(index, videoModel);
-                videoRowAdapter.notifyArrayItemRangeChanged(0, videoArray.getCount() +1);
+                videoRowAdapter.notifyArrayItemRangeChanged(0, videoArray.getCount() + 1);
                 break;
             case CHANGED:
                 videoModel = videoArray.getItem(index).getValue(VideoModel.class);

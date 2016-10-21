@@ -15,7 +15,6 @@
 package org.fingerlinks.mobile.android.fingertube.tv;
 
 import android.app.Activity;
-
 import android.media.MediaMetadataRetriever;
 import android.os.Build;
 import android.os.Bundle;

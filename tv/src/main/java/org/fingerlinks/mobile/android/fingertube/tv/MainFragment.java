@@ -18,7 +18,6 @@ import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v17.leanback.widget.SparseArrayObjectAdapter;
 import android.support.v4.content.ContextCompat;
-import android.text.Html;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -50,6 +49,7 @@ public class MainFragment extends BrowseFragment implements FirebaseArray.OnChan
     private DatabaseReference databaseReference;
 
     private FirebaseArray videoArray;
+    private SparseArrayObjectAdapter videoRowAdapter;
 
     @Override
     public void onAttach(Context context) {
@@ -60,12 +60,12 @@ public class MainFragment extends BrowseFragment implements FirebaseArray.OnChan
         setUpAdapter();
     }
 
-
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
         setTitle(getString(R.string.app_name));
+        //setBadgeDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.ic_logo));
         setHeadersState(HEADERS_ENABLED);
         setHeadersTransitionOnBackEnabled(true);
         setBrandColor(ContextCompat.getColor(getActivity(), R.color.primary_dark));
@@ -103,9 +103,9 @@ public class MainFragment extends BrowseFragment implements FirebaseArray.OnChan
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()) {
                                         new AlertDialog.Builder(getActivity())
-                                                .setTitle("Login")
+                                                .setTitle(R.string.login)
                                                 .setMessage(Utils.fromHtml(getString(R.string.login_msg, Remember.getString("tv_id", "").toUpperCase())))
-                                                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                                .setNegativeButton(R.string.ok, new DialogInterface.OnClickListener() {
                                                     @Override
                                                     public void onClick(DialogInterface dialog, int which) {
                                                         //get current user id from my tv_id
@@ -118,12 +118,12 @@ public class MainFragment extends BrowseFragment implements FirebaseArray.OnChan
                                                                     //user correctly login save user id in shared preference
                                                                     Remember.putString("user_id", dataSnapshotValue.user_id);
                                                                     Remember.putBoolean("tv_match", true);
-                                                                    Toast.makeText(getActivity(), "Login effettuato con successo", Toast.LENGTH_LONG).show();
+                                                                    Toast.makeText(getActivity(), R.string.login_success, Toast.LENGTH_LONG).show();
                                                                 } else {
                                                                     //error matching tv in smart phone
                                                                     new AlertDialog.Builder(getActivity())
-                                                                            .setTitle("Errore login")
-                                                                            .setMessage("Qualcosa è andato storto nell'accopiamento del tuo account con la tv, riprova...")
+                                                                            .setTitle(R.string.error_login_title)
+                                                                            .setMessage(R.string.error_login_msg)
                                                                             .setPositiveButton(R.string.ok, null)
                                                                             .show();
                                                                 }
@@ -145,7 +145,7 @@ public class MainFragment extends BrowseFragment implements FirebaseArray.OnChan
                                                         });
                                                     }
                                                 })
-                                                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                                                .setPositiveButton(R.string.cancel, new DialogInterface.OnClickListener() {
                                                     @Override
                                                     public void onClick(DialogInterface dialog, int which) {
 
@@ -159,14 +159,23 @@ public class MainFragment extends BrowseFragment implements FirebaseArray.OnChan
                             Query query = databaseReference.child("user_list").child(Remember.getString("user_id", ""));
                             query.addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                public void onDataChange(final DataSnapshot dataSnapshot) {
                                     UserModel dataSnapshotValue = dataSnapshot.getValue(UserModel.class);
                                     new AlertDialog.Builder(getActivity())
                                             .setTitle("Ciao, " + dataSnapshotValue.display_name)
                                             .setMessage(dataSnapshotValue.email)
-                                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                            .setPositiveButton(R.string.un_link, new DialogInterface.OnClickListener() {
                                                 @Override
                                                 public void onClick(DialogInterface dialog, int which) {
+                                                    dataSnapshot.getRef().child("tv_id").setValue("");
+                                                    databaseReference.child("tv_list").child(Remember.getString("", Remember.getString("tv_id", ""))).removeValue();
+                                                    Remember.putString("tv_id", Utils.getLoginCode());
+                                                    Remember.putBoolean("tv_match", false);
+                                                }
+                                            })
+                                            .setNegativeButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialogInterface, int i) {
 
                                                 }
                                             })
@@ -195,8 +204,6 @@ public class MainFragment extends BrowseFragment implements FirebaseArray.OnChan
         });
 
     }
-
-    private SparseArrayObjectAdapter videoRowAdapter;
 
     private void setUpAdapter() {
         categoryRowAdapter.clear();
@@ -241,7 +248,7 @@ public class MainFragment extends BrowseFragment implements FirebaseArray.OnChan
                 videoModel = videoArray.getItem(index).getValue(VideoModel.class);
                 videoModel.key = videoArray.getItem(index).getKey();
                 videoRowAdapter.set(index, videoModel);
-                videoRowAdapter.notifyArrayItemRangeChanged(0, videoArray.getCount() +1);
+                videoRowAdapter.notifyArrayItemRangeChanged(0, videoArray.getCount() + 1);
                 break;
             case CHANGED:
                 videoModel = videoArray.getItem(index).getValue(VideoModel.class);

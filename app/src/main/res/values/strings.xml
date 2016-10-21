@@ -9,8 +9,10 @@
     <string name="loading">Caricamento…</string>
     <string name="inserisci_codice">Inserisci codice</string>
     <string name="welcome_title">Ciao, benvenuto in Finger Tube</string>
-    <string name="welcome_msg">Vai nella sezione Account della tua applicazione FInger Tube sulla tua TV e inserisici il codice che viene visualizzato</string>
-    <string name="inserisci_codice_msg">Inserisci il codice che visualizzi sula tua TV</string>
+    <string name="welcome_msg">Vai nella sezione Account della tua applicazione Finger Tube sulla tua TV e inserisici il codice che viene visualizzato</string>
+    <string name="inserisci_codice_msg">Inserisci il codice che visualizzi sulla tua TV</string>
     <string name="code_error_tite">Errore associazione TV</string>
     <string name="code_error_msg">Il codice che hai inserito non corrisponde a nessuna TV</string>
+    <string name="welcome_video_msg">Vai sulla tua TV e apri un video</string>
+    <string name="commenti">Commenti</string>
 </resources>
