@@ -1,4 +1,4 @@
-package org.fingerlinks.mobile.android.fingertube.model;
+package org.fingerlinks.mobile.android.fingertube.tv.model;
 
 import com.google.firebase.database.Exclude;
 
@@ -33,5 +33,6 @@ public class TvModel implements Serializable {
         result.put("video_id", video_id);
         return result;
     }
+
 
 }

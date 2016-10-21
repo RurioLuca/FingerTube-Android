@@ -1,4 +1,4 @@
-package org.fingerlinks.mobile.android.fingertube.model;
+package org.fingerlinks.mobile.android.fingertube.tv.model;
 
 import com.google.firebase.database.Exclude;
 

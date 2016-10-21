@@ -55,11 +55,13 @@ public class AllVideoFragment extends VerticalGridFragment implements FirebaseAr
         switch (type) {
             case ADDED:
                 videoModel = videoArray.getItem(index).getValue(VideoModel.class);
+                videoModel.key = videoArray.getItem(index).getKey();
                 videoRowAdapter.set(index, videoModel);
                 videoRowAdapter.notifyArrayItemRangeChanged(0, videoArray.getCount() +1);
                 break;
             case CHANGED:
                 videoModel = videoArray.getItem(index).getValue(VideoModel.class);
+                videoModel.key = videoArray.getItem(index).getKey();
                 videoRowAdapter.set(index, videoModel);
                 break;
             case REMOVED:

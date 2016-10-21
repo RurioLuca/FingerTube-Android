@@ -21,7 +21,7 @@ class Utils {
             int index = (int) (rnd.nextFloat() * chars.length());
             stringBuilder.append(chars.charAt(index));
         }
-        return stringBuilder.toString();
+        return stringBuilder.toString().toLowerCase();
     }
 
     @SuppressWarnings("deprecation")

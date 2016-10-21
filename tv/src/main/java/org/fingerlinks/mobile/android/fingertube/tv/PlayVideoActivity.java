@@ -1,6 +1,8 @@
 package org.fingerlinks.mobile.android.fingertube.tv;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.media.MediaMetadata;
 import android.media.MediaPlayer;
@@ -13,8 +15,19 @@ import android.widget.VideoView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+import com.tumblr.remember.Remember;
 
+import org.fingerlinks.mobile.android.fingertube.tv.model.TvModel;
 import org.fingerlinks.mobile.android.fingertube.tv.model.VideoModel;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by raphaelbussa on 13/10/16.
@@ -29,11 +42,16 @@ public class PlayVideoActivity extends Activity implements PlayVideoFragment.OnP
     private PlaybackState playbackState;
 
     private String videoUrl = "";
+    private DatabaseReference databaseReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play_video);
+
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+        String videoKey = ((VideoModel) getIntent().getSerializableExtra("VIDEO")).key;
+        setVideoId(videoKey);
 
         videoView = (VideoView) findViewById(R.id.video_view);
         videoView.setFocusable(false);
@@ -86,6 +104,7 @@ public class PlayVideoActivity extends Activity implements PlayVideoFragment.OnP
     @Override
     public void onDestroy() {
         super.onDestroy();
+        setVideoId("");
         videoView.suspend();
     }
 
@@ -199,6 +218,27 @@ public class PlayVideoActivity extends Activity implements PlayVideoFragment.OnP
 
     private class MediaSessionCallback extends MediaSession.Callback {
 
+    }
+
+    private void setVideoId(final String id) {
+        Query query = databaseReference.child("tv_list").child(Remember.getString("tv_id", ""));
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    TvModel dataSnapshotValue = dataSnapshot.getValue(TvModel.class);
+                    dataSnapshotValue.video_id = id;
+                    Map<String, Object> childUpdates = new HashMap<>();
+                    childUpdates.put("/tv_list/" + Remember.getString("tv_id", ""), dataSnapshotValue.toMap());
+                    databaseReference.updateChildren(childUpdates);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
 }

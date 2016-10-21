@@ -12,7 +12,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.LinearLayout;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -32,6 +32,9 @@ import org.fingerlinks.mobile.android.fingertube.R;
 import org.fingerlinks.mobile.android.fingertube.model.TvModel;
 import org.fingerlinks.mobile.android.fingertube.model.UserModel;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.firebase.ui.auth.ui.AcquireEmailHelper.RC_SIGN_IN;
 
 public class MainActivity extends AppCompatActivity {
@@ -40,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Toolbar toolbar;
     private Button addTvCode;
+    private LinearLayout addTvContainer;
 
     private MaterialDialog progressDialog;
     private DatabaseReference databaseReference;
@@ -53,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         addTvCode = (Button) findViewById(R.id.add_tv_code);
+        addTvContainer = (LinearLayout) findViewById(R.id.add_tv_container);
 
         toolbar.inflateMenu(R.menu.activity_main);
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -122,21 +127,73 @@ public class MainActivity extends AppCompatActivity {
                                 .input("HA23M2", "", false, new MaterialDialog.InputCallback() {
                                     @Override
                                     public void onInput(@NonNull final MaterialDialog dialog, CharSequence input) {
-                                        TvModel tvModel = new TvModel(FirebaseAuth.getInstance().getCurrentUser().getUid());
-                                        databaseReference.child("tv_list").child(input.toString().toLowerCase()).setValue(tvModel).addOnCompleteListener(MainActivity.this, new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                if (task.isSuccessful()) {
-                                                    dialog.dismiss();
-                                                }
-                                            }
-                                        });
+                                        progressDialog = new MaterialDialog.Builder(MainActivity.this)
+                                                .content(R.string.loading)
+                                                .progress(true, 0)
+                                                .cancelable(false)
+                                                .build();
+                                        progressDialog.show();
+                                        setTvId(input.toString().toLowerCase());
                                     }
                                 }).show();
                     }
                 });
             }
         }
+
+    }
+
+    private void setTvId(final String id) {
+        final String key = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        Query query = databaseReference.child("user_list").child(key);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(final DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    Query query = databaseReference.child("tv_list").child(id);
+                    query.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot1) {
+                            if (dataSnapshot.exists()) {
+                                Log.d(TAG, "dataSnapshot.exists()");
+                                UserModel userModel = dataSnapshot.getValue(UserModel.class);
+                                userModel.tv_id = id;
+                                TvModel tvModel = dataSnapshot1.getValue(TvModel.class);
+                                tvModel.user_id = key;
+                                Map<String, Object> childUpdates = new HashMap<>();
+                                childUpdates.put("/tv_list/" + id, tvModel.toMap());
+                                childUpdates.put("/user_list/" + key, userModel.toMap());
+                                databaseReference.updateChildren(childUpdates).addOnCompleteListener(MainActivity.this, new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        Log.d(TAG, "onComplete");
+                                        Remember.putBoolean("tv_connected", true);
+                                        progressDialog.dismiss();
+                                    }
+                                });
+                            } else {
+                                progressDialog.dismiss();
+                                new MaterialDialog.Builder(MainActivity.this)
+                                        .title(R.string.code_error_tite)
+                                        .content(R.string.code_error_msg)
+                                        .positiveText(R.string.ok)
+                                        .show();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            progressDialog.dismiss();
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                progressDialog.dismiss();
+            }
+        });
 
     }
 

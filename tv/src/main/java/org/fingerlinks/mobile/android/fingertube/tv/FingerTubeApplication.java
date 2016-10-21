@@ -14,5 +14,8 @@ public class FingerTubeApplication extends Application {
     public void onCreate() {
         super.onCreate();
         Remember.init(getApplicationContext(), R.class.getPackage().getName());
+        if (Remember.getString("tv_id", "").isEmpty()) {
+            Remember.putString("tv_id", Utils.getLoginCode());
+        }
     }
 }

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v17.leanback.app.BrowseFragment;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
 import android.support.v17.leanback.widget.HeaderItem;
@@ -18,14 +19,21 @@ import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v17.leanback.widget.SparseArrayObjectAdapter;
 import android.support.v4.content.ContextCompat;
 import android.text.Html;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.tumblr.remember.Remember;
 
 import org.fingerlinks.mobile.android.fingertube.tv.firebase.FirebaseArray;
+import org.fingerlinks.mobile.android.fingertube.tv.model.TvModel;
+import org.fingerlinks.mobile.android.fingertube.tv.model.UserModel;
 import org.fingerlinks.mobile.android.fingertube.tv.model.VideoModel;
 import org.fingerlinks.mobile.android.fingertube.tv.presenter.InfoPresenter;
 import org.fingerlinks.mobile.android.fingertube.tv.presenter.VideoPresenter;
@@ -87,26 +95,99 @@ public class MainFragment extends BrowseFragment implements FirebaseArray.OnChan
                         return;
                     }
                     if (value.equals(getString(R.string.account))) {
+                        if (!Remember.getBoolean("tv_match", false)) {
+                            //generate tv item in tv_list
+                            TvModel tvModel = new TvModel("", "Android TV", "");
+                            databaseReference.child("tv_list").child(Remember.getString("tv_id", "")).setValue(tvModel).addOnCompleteListener(getActivity(), new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        new AlertDialog.Builder(getActivity())
+                                                .setTitle("Login")
+                                                .setMessage(Utils.fromHtml(getString(R.string.login_msg, Remember.getString("tv_id", "").toUpperCase())))
+                                                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        //get current user id from my tv_id
+                                                        Query query = databaseReference.child("tv_list").child(Remember.getString("tv_id", ""));
+                                                        query.addListenerForSingleValueEvent(new ValueEventListener() {
+                                                            @Override
+                                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                                TvModel dataSnapshotValue = dataSnapshot.getValue(TvModel.class);
+                                                                if (!dataSnapshotValue.user_id.isEmpty()) {
+                                                                    //user correctly login save user id in shared preference
+                                                                    Remember.putString("user_id", dataSnapshotValue.user_id);
+                                                                    Remember.putBoolean("tv_match", true);
+                                                                    Toast.makeText(getActivity(), "Login effettuato con successo", Toast.LENGTH_LONG).show();
+                                                                } else {
+                                                                    //error matching tv in smart phone
+                                                                    new AlertDialog.Builder(getActivity())
+                                                                            .setTitle("Errore login")
+                                                                            .setMessage("Qualcosa è andato storto nell'accopiamento del tuo account con la tv, riprova...")
+                                                                            .setPositiveButton(R.string.ok, null)
+                                                                            .show();
+                                                                }
+                                                            }
 
-                        final String loginCode = Utils.getLoginCode();
-                        Remember.putString("login_code", loginCode);
+                                                            @Override
+                                                            public void onCancelled(DatabaseError databaseError) {
+                                                                new AlertDialog.Builder(getActivity())
+                                                                        .setTitle(databaseError.getMessage())
+                                                                        .setMessage(databaseError.getDetails())
+                                                                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                                                            @Override
+                                                                            public void onClick(DialogInterface dialog, int which) {
 
-                        new AlertDialog.Builder(getActivity())
-                                .setTitle("Login")
-                                .setMessage(Utils.fromHtml(getString(R.string.login_msg, loginCode)))
-                                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
+                                                                            }
+                                                                        })
+                                                                        .show();
+                                                            }
+                                                        });
+                                                    }
+                                                })
+                                                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogInterface dialog, int which) {
 
+                                                    }
+                                                })
+                                                .show();
                                     }
-                                })
-                                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
+                                }
+                            });
+                        } else {
+                            Query query = databaseReference.child("user_list").child(Remember.getString("user_id", ""));
+                            query.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    UserModel dataSnapshotValue = dataSnapshot.getValue(UserModel.class);
+                                    new AlertDialog.Builder(getActivity())
+                                            .setTitle("Ciao, " + dataSnapshotValue.display_name)
+                                            .setMessage(dataSnapshotValue.email)
+                                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
 
-                                    }
-                                })
-                                .show();
+                                                }
+                                            })
+                                            .show();
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+                                    new AlertDialog.Builder(getActivity())
+                                            .setTitle(databaseError.getMessage())
+                                            .setMessage(databaseError.getDetails())
+                                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+
+                                                }
+                                            })
+                                            .show();
+                                }
+                            });
+                        }
                     }
 
                 }
@@ -158,11 +239,13 @@ public class MainFragment extends BrowseFragment implements FirebaseArray.OnChan
         switch (type) {
             case ADDED:
                 videoModel = videoArray.getItem(index).getValue(VideoModel.class);
+                videoModel.key = videoArray.getItem(index).getKey();
                 videoRowAdapter.set(index, videoModel);
                 videoRowAdapter.notifyArrayItemRangeChanged(0, videoArray.getCount() +1);
                 break;
             case CHANGED:
                 videoModel = videoArray.getItem(index).getValue(VideoModel.class);
+                videoModel.key = videoArray.getItem(index).getKey();
                 videoRowAdapter.set(index, videoModel);
                 break;
             case REMOVED:
