@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Finger Tube</string>
+    <string name="show_all">Vedi tutti</string>
+    <string name="section_video">Video</string>
+    <string name="settings">Impostazioni</string>
+    <string name="account">Account</string>
+    <string name="info">Info</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Annulla</string>
+
+    <string name="login_msg"><![CDATA[
+    <h1><b>%s</b></h1>
+    Inserisci il codice qui sopra nella tua applicazione Finger Tube sul tuo smartphone, quando hai finito, torna qui e conferma.
+    ]]></string>
+
+</resources>

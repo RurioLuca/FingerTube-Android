@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Finger Tube</string>
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
+    <string name="logout_msg">Sei sicuro di voler effettuare il logout?</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Annulla</string>
+    <string name="loading">Caricamento…</string>
+    <string name="inserisci_codice">Inserisci codice</string>
+    <string name="welcome_title">Ciao, benvenuto in Finger Tube</string>
+    <string name="welcome_msg">Vai nella sezione Account della tua applicazione FInger Tube sulla tua TV e inserisici il codice che viene visualizzato</string>
+    <string name="inserisci_codice_msg">Inserisci il codice che visualizzi sula tua TV</string>
+</resources>

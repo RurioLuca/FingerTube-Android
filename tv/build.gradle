@@ -1,0 +1,48 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "24.0.3"
+    defaultConfig {
+        applicationId "org.fingerlinks.mobile.android.fingertube.tv"
+        minSdkVersion 21
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    signingConfigs {
+        debug {
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+            storeFile file('../keystore/debug.keystore')
+            storePassword 'android'
+        }
+        release {
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+            storeFile file('../keystore/debug.keystore')
+            storePassword 'android'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile 'com.android.support:leanback-v17:25.0.0'
+    compile 'com.android.support:appcompat-v7:25.0.0'
+
+    compile 'com.google.firebase:firebase-core:9.6.1'
+    compile 'com.google.firebase:firebase-database:9.6.1'
+
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+    compile 'com.tumblr:remember:1.0.0@aar'
+}
+
+apply plugin: 'com.google.gms.google-services'

@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "569078483796",
+    "firebase_url": "https://finger-tube.firebaseio.com",
+    "project_id": "finger-tube",
+    "storage_bucket": "finger-tube.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:569078483796:android:1e113c538c0c6b13",
+        "android_client_info": {
+          "package_name": "org.fingerlinks.mobile.android.fingertube"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "569078483796-n85kod8hfg47g5r4qu8eud3p5ogtutj9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD70KK7NvL8rnBlxvcd0102qK--vPbMQu0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
