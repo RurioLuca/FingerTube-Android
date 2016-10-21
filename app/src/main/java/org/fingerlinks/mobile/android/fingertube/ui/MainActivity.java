@@ -7,6 +7,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
@@ -27,6 +28,7 @@ import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -69,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     private Query myTvQUery;
 
     private FirebaseRecyclerAdapter<CommentModel, CommentViewHolder> firebaseRecyclerAdapter;
+    private MaterialDialog commentDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,44 +92,33 @@ public class MainActivity extends AppCompatActivity {
         videoImage = (ImageView) findViewById(R.id.video_image);
 
         commentList.setNestedScrollingEnabled(false);
-        GridLayoutManager manager = new GridLayoutManager(MainActivity.this, 1, GridLayoutManager.VERTICAL, false);
+        LinearLayoutManager manager = new LinearLayoutManager(MainActivity.this);
+        manager.setReverseLayout(true);
+        manager.setStackFromEnd(true);
         commentList.setLayoutManager(manager);
 
-/*
-        String[] test = new String[] {
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk",
-                "lorem vadghjskfgdhafkg fghadj fgdhajfkgdahj gdahsjlf gdahjkf dajk"
-        };
-
-        for (String s : test) {
-            CommentModel model = new CommentModel("b7WH5nXzepWqKC8RJJ4RjVQ5MZ92", "Raphaël Bussa", "raphaelbussa@gmail.com", System.currentTimeMillis(), s);
-            databaseReference.child("comment_list").child("-KTyKVw_iL8FhaVUpML1").push().setValue(model);
-        }*/
+        newComment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final String id = (String) view.getTag();
+                if (!id.isEmpty()) {
+                    commentDialog = new MaterialDialog.Builder(MainActivity.this)
+                            .title(R.string.new_comment)
+                            .inputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE)
+                            .inputRange(0, 1000)
+                            .negativeText(R.string.cancel)
+                            .positiveText(R.string.ok)
+                            .input(getString(R.string.new_comment_hint), "", false, new MaterialDialog.InputCallback() {
+                                @Override
+                                public void onInput(@NonNull final MaterialDialog dialog, CharSequence input) {
+                                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                                    CommentModel model = new CommentModel(user.getUid(), user.getDisplayName(), user.getEmail(), System.currentTimeMillis(), input.toString());
+                                    databaseReference.child("comment_list").child(id).push().setValue(model);
+                                }
+                            }).show();
+                }
+            }
+        });
 
         toolbar.inflateMenu(R.menu.activity_main);
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -208,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
         new MaterialDialog.Builder(MainActivity.this)
                 .title(R.string.inserisci_codice)
                 .content(R.string.inserisci_codice_msg)
-                .inputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS)
+                .inputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE)
                 .inputRange(6, 6)
                 .negativeText(R.string.cancel)
                 .positiveText(R.string.ok)
@@ -367,10 +359,14 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "tvModel.video_id [" + tvModel.video_id + "]");
                 String videoId = tvModel.video_id;
                 if (videoId.isEmpty()) {
+                    if (commentDialog != null && commentDialog.isShowing()) commentDialog.dismiss();
+                    newComment.setTag("");
                     addTvContainer.setVisibility(View.GONE);
                     commentContainer.setVisibility(View.GONE);
                     openVideoInTv.setVisibility(View.VISIBLE);
                 } else {
+                    if (commentDialog != null && commentDialog.isShowing()) commentDialog.dismiss();
+                    newComment.setTag(videoId);
                     addTvContainer.setVisibility(View.GONE);
                     commentContainer.setVisibility(View.VISIBLE);
                     openVideoInTv.setVisibility(View.GONE);
@@ -415,9 +411,12 @@ public class MainActivity extends AppCompatActivity {
                 }
             } else {
                 Log.d(TAG, "tvModel removed");
+                if (commentDialog != null && commentDialog.isShowing()) commentDialog.dismiss();
                 Remember.remove("tv_id");
                 myTvQUery.removeEventListener(tvValueEventListener);
                 addTvContainer.setVisibility(View.VISIBLE);
+                commentContainer.setVisibility(View.GONE);
+                openVideoInTv.setVisibility(View.GONE);
                 addTvCode.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {

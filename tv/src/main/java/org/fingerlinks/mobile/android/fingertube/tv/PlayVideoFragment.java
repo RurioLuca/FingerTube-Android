@@ -1,6 +1,8 @@
 package org.fingerlinks.mobile.android.fingertube.tv;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.media.MediaMetadataRetriever;
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,6 +12,7 @@ import android.support.v17.leanback.widget.Action;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
 import android.support.v17.leanback.widget.ClassPresenterSelector;
 import android.support.v17.leanback.widget.ControlButtonPresenterSelector;
+import android.support.v17.leanback.widget.HeaderItem;
 import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.OnActionClickedListener;
@@ -21,6 +24,7 @@ import android.support.v17.leanback.widget.PlaybackControlsRowPresenter;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
+import android.support.v17.leanback.widget.SparseArrayObjectAdapter;
 import android.util.Log;
 import android.widget.VideoView;
 
@@ -28,8 +32,15 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 
+import org.fingerlinks.mobile.android.fingertube.tv.firebase.FirebaseArray;
+import org.fingerlinks.mobile.android.fingertube.tv.model.CommentModel;
 import org.fingerlinks.mobile.android.fingertube.tv.model.VideoModel;
+import org.fingerlinks.mobile.android.fingertube.tv.presenter.CommentPresenter;
 
 import java.util.HashMap;
 
@@ -53,6 +64,8 @@ public class PlayVideoFragment extends PlaybackOverlayFragment {
     private Handler handler;
     private Runnable runnable;
 
+    private DatabaseReference databaseReference;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,6 +73,8 @@ public class PlayVideoFragment extends PlaybackOverlayFragment {
         videoModel = (VideoModel) getActivity().getIntent().getSerializableExtra("VIDEO");
 
         handler = new Handler();
+
+        databaseReference = FirebaseDatabase.getInstance().getReference();
 
         setBackgroundType(PlaybackOverlayFragment.BG_LIGHT);
         setFadingEnabled(false);
@@ -75,6 +90,19 @@ public class PlayVideoFragment extends PlaybackOverlayFragment {
             @Override
             public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
                 Log.i(TAG, "onItemClicked: " + item + " row " + row);
+                if (item instanceof CommentModel) {
+                    CommentModel commentModel = (CommentModel) item;
+                    new AlertDialog.Builder(getActivity())
+                            .setTitle(commentModel.user_display_name)
+                            .setMessage(commentModel.comment)
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            })
+                            .show();
+                }
             }
         });
     }
@@ -82,7 +110,6 @@ public class PlayVideoFragment extends PlaybackOverlayFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        //playPauseClickedListener.onFragmentPlayPause(videoModel, 0, true);
     }
 
     @Override
@@ -130,8 +157,47 @@ public class PlayVideoFragment extends PlaybackOverlayFragment {
         playPauseAction = new PlaybackControlsRow.PlayPauseAction(getActivity());
         playPauseAction.setIcon(playPauseAction.getDrawable(PlayPauseAction.PLAY));
         primaryActionsAdapter.add(playPauseAction);
-
+        addComments();
         setAdapter(rowsAdapter);
+    }
+
+    private FirebaseArray commentsArray;
+    private SparseArrayObjectAdapter commentsRowAdapter;
+
+    private void addComments() {
+        commentsRowAdapter = new SparseArrayObjectAdapter(new CommentPresenter());
+        Query query = databaseReference.child("comment_list").child(videoModel.key);
+        commentsArray = new FirebaseArray(query);
+        commentsArray.setOnChangedListener(new FirebaseArray.OnChangedListener() {
+            @Override
+            public void onChanged(EventType type, int index, int oldIndex) {
+                CommentModel commentModel;
+                Log.d(TAG, "type [" + type + "]");
+                switch (type) {
+                    case ADDED:
+                        commentModel = commentsArray.getItem(index).getValue(CommentModel.class);
+                        videoModel.key = commentsArray.getItem(index).getKey();
+                        commentsRowAdapter.set(index, commentModel);
+                        commentsRowAdapter.notifyArrayItemRangeChanged(0, commentsArray.getCount() + 1);
+                        break;
+                    case CHANGED:
+                        commentModel = commentsArray.getItem(index).getValue(CommentModel.class);
+                        videoModel.key = commentsArray.getItem(index).getKey();
+                        commentsRowAdapter.set(index, commentModel);
+                        break;
+                    case REMOVED:
+                        commentsRowAdapter.clear(index);
+                        break;
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        HeaderItem header = new HeaderItem(0, getString(R.string.comments));
+        rowsAdapter.add(new ListRow(header, commentsRowAdapter));
     }
 
     public void stopPlayback() {

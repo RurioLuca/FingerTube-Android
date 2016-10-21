@@ -80,9 +80,8 @@ public class MainFragment extends BrowseFragment implements FirebaseArray.OnChan
                     VideoModel model = (VideoModel) item;
 
                     //a video is clicked, play it
-                    Intent intent = new Intent(getActivity(), PlaybackOverlayActivity.class);
-                    intent.putExtra("MOVIE", model);
-
+                    Intent intent = new Intent(getActivity(), PlayVideoActivity.class);
+                    intent.putExtra("VIDEO", model);
                     startActivity(intent);
                     return;
                 }

@@ -18,5 +18,6 @@
     <string name="error_login_msg">Qualcosa è andato storto nell\'accopiamento del tuo account con la tv, riprova...</string>
     <string name="login_success">Login effettuato con successo</string>
     <string name="login">Login</string>
+    <string name="comments">Commenti</string>
 
 </resources>

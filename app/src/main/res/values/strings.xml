@@ -15,4 +15,6 @@
     <string name="code_error_msg">Il codice che hai inserito non corrisponde a nessuna TV</string>
     <string name="welcome_video_msg">Vai sulla tua TV e apri un video</string>
     <string name="commenti">Commenti</string>
+    <string name="new_comment_hint">Scrivi un nuovo commemnto</string>
+    <string name="new_comment">Nuovo commento</string>
 </resources>
